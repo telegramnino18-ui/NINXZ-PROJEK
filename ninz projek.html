@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NINZ PRO PANEL</title>
+
+<style>
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+background:#020617;
+color:#e2e8f0;
+font-family:Arial;
+padding:14px;
+}
+
+.title{
+text-align:center;
+font-size:24px;
+font-weight:bold;
+color:#38bdf8;
+margin-bottom:12px;
+}
+
+.container{
+max-width:420px;
+margin:auto;
+}
+
+.card{
+background:#0f172a;
+border-radius:14px;
+padding:14px;
+margin-bottom:10px;
+border:1px solid #1e293b;
+}
+
+.label{
+font-size:13px;
+color:#94a3b8;
+}
+
+.price{
+font-size:34px;
+color:#22c55e;
+font-weight:bold;
+}
+
+.border{
+display:flex;
+justify-content:space-between;
+margin-top:8px;
+font-size:16px;
+}
+
+.res{color:#ef4444}
+.sup{color:#22c55e}
+
+.setup{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:8px;
+}
+
+.buy{
+background:#052e16;
+border:1px solid #16a34a;
+border-radius:12px;
+padding:10px;
+}
+
+.sell{
+background:#3f0a0a;
+border:1px solid #dc2626;
+border-radius:12px;
+padding:10px;
+}
+
+#adviceSection{
+margin-top:10px;
+text-align:center;
+padding:18px;
+border-top:2px solid #1e293b;
+}
+
+#adviceTitle{
+font-size:20px;
+color:#38bdf8;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+#advice{
+font-size:20px;
+line-height:1.8;
+font-weight:bold;
+}
+
+.ninz{
+margin-top:18px;
+font-size:28px;
+font-weight:900;
+letter-spacing:2px;
+background:linear-gradient(90deg,#22c55e,#38bdf8,#a855f7,#facc15);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.gas-buttons{
+display:flex;
+gap:10px;
+margin-top:15px;
+}
+
+.gas{
+flex:1;
+padding:12px;
+font-size:16px;
+font-weight:bold;
+border-radius:12px;
+background:#1e293b;
+}
+
+.buy-active{
+background:#22c55e;
+box-shadow:0 0 15px #22c55e;
+}
+
+.sell-active{
+background:#ef4444;
+box-shadow:0 0 15px #ef4444;
+}
+
+/* TOOLS */
+
+.tools{
+margin-top:20px;
+display:grid;
+gap:10px;
+}
+
+.tool-card{
+background:#0f172a;
+border:1px solid #1e293b;
+border-radius:12px;
+padding:12px;
+}
+
+.tool-title{
+color:#38bdf8;
+font-weight:bold;
+margin-bottom:6px;
+}
+
+.momentum-bar{
+height:10px;
+background:#1e293b;
+border-radius:6px;
+overflow:hidden;
+}
+
+#momentumFill{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,#22c55e,#facc15,#ef4444);
+transition:0.4s;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="title">BTC SMART PANEL</div>
+
+<div class="container">
+
+<div class="card">
+<div class="label">BTC Price</div>
+<div id="price" class="price">Loading...</div>
+</div>
+
+<div class="card">
+<div class="label">Market Border</div>
+<div class="border">
+<div id="res" class="res"></div>
+<div id="sup" class="sup"></div>
+</div>
+</div>
+
+<div class="card">
+
+<div class="label">Trading Setup</div>
+
+<div class="setup">
+
+<div class="buy">
+<b>BUY</b><br>
+Entry: <span id="buyEntry"></span><br>
+SL: <span id="buySL"></span><br>
+TP: <span id="buyTP"></span>
+</div>
+
+<div class="sell">
+<b>SELL</b><br>
+Entry: <span id="sellEntry"></span><br>
+SL: <span id="sellSL"></span><br>
+TP: <span id="sellTP"></span>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div id="adviceSection">
+
+<div id="adviceTitle">TRADING ADVICE</div>
+
+<div id="advice">Analyzing market...</div>
+
+<div class="ninz">BY NINZ PROJEK</div>
+
+<div class="gas-buttons">
+
+<div id="gasBuy" class="gas">🚀 GAS BUY</div>
+
+<div id="gasSell" class="gas">🔥 GAS SELL</div>
+
+</div>
+
+<div class="tools">
+
+<div class="tool-card">
+
+<div class="tool-title">Market Momentum</div>
+
+<div class="momentum-bar">
+<div id="momentumFill"></div>
+</div>
+
+<div id="momentumText">Analyzing...</div>
+
+</div>
+
+<div class="tool-card">
+
+<div class="tool-title">Volatility Detector</div>
+
+<div id="volatilityText">Analyzing...</div>
+
+</div>
+
+<div class="tool-card">
+
+<div class="tool-title">Quick Scalping Tip</div>
+
+<div id="scalpTip">Waiting data...</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let lastPrices=[]
+
+async function getPrice(){
+
+let r=await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")
+
+let d=await r.json()
+
+return parseFloat(d.price)
+
+}
+
+function analyze(price){
+
+let resistance=price+200
+let support=price-200
+
+document.getElementById("price").innerHTML=price.toFixed(2)
+
+document.getElementById("res").innerHTML="🔴 "+resistance.toFixed(2)
+document.getElementById("sup").innerHTML="🟢 "+support.toFixed(2)
+
+document.getElementById("buyEntry").innerHTML=support.toFixed(2)
+document.getElementById("buySL").innerHTML=(support-120).toFixed(2)
+document.getElementById("buyTP").innerHTML=(support+240).toFixed(2)
+
+document.getElementById("sellEntry").innerHTML=resistance.toFixed(2)
+document.getElementById("sellSL").innerHTML=(resistance+120).toFixed(2)
+document.getElementById("sellTP").innerHTML=(resistance-240).toFixed(2)
+
+let advice=""
+
+let buy=false
+let sell=false
+
+if(price < support+80){
+
+buy=true
+advice="📈 Harga mendekati SUPPORT"
+
+}
+
+else if(price > resistance-80){
+
+sell=true
+advice="📉 Harga mendekati RESISTANCE"
+
+}
+
+else{
+
+advice="⏳ Tunggu setup market"
+
+}
+
+document.getElementById("advice").innerHTML=advice
+
+document.getElementById("gasBuy").classList.remove("buy-active")
+document.getElementById("gasSell").classList.remove("sell-active")
+
+if(buy){
+document.getElementById("gasBuy").classList.add("buy-active")
+}
+
+if(sell){
+document.getElementById("gasSell").classList.add("sell-active")
+}
+
+updateTools(price)
+
+}
+
+function updateTools(price){
+
+lastPrices.push(price)
+
+if(lastPrices.length>10){
+lastPrices.shift()
+}
+
+if(lastPrices.length<2) return
+
+let change=price-lastPrices[0]
+
+let momentum=Math.min(Math.abs(change)*5,100)
+
+document.getElementById("momentumFill").style.width=momentum+"%"
+
+document.getElementById("momentumText").innerHTML="Momentum: "+momentum.toFixed(0)+"%"
+
+if(momentum>70){
+
+document.getElementById("volatilityText").innerHTML="⚡ High Volatility"
+
+document.getElementById("scalpTip").innerHTML="Gunakan scalping cepat"
+
+}
+
+else{
+
+document.getElementById("volatilityText").innerHTML="🟢 Market stabil"
+
+document.getElementById("scalpTip").innerHTML="Tunggu breakout"
+
+}
+
+}
+
+async function run(){
+
+let price=await getPrice()
+
+analyze(price)
+
+}
+
+run()
+
+setInterval(run,5000)
+
+</script>
+
+</body>
+</html>
